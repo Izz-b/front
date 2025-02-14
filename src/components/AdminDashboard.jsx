@@ -1,343 +1,286 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import PropTypes from "prop-types"
 import RoomManagement from "./RoomManagement"
+import ExamManagement from "./ExamManagement"
 import SupervisorManagement from "./SupervisorManagement"
-import RoomList from "./RoomList"
 
 function AdminDashboard({ onLogout }) {
+  const [activeView, setActiveView] = useState("main")
   const [exams, setExams] = useState([])
-  const [notification, setNotification] = useState(null)
-  const [formData, setFormData] = useState({
+  const [invigilators, setInvigilators] = useState([])
+  const [rooms, setRooms] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [filters, setFilters] = useState({
+    date: "",
     subject: "",
-    department_id: "",
-    exam_date: "",
-    start_time: "",
-    end_time: "",
-    difficulty: 1,
-    coefficient: 1,
-    is_duplicate: false,
+    teacher: "",
+    room: "",
+    studyLevel: "",
   })
-
-  const [showRoomManagement, setShowRoomManagement] = useState(false)
-  const [showExamManagement, setShowExamManagement] = useState(false)
   const [showSupervisorManagement, setShowSupervisorManagement] = useState(false)
-  const [showExamList, setShowExamList] = useState(false)
-  const [showRoomList, setShowRoomList] = useState(false)
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: type === "checkbox" ? checked : value,
-    }))
+  // Fetch data (replace with actual API calls)
+  useEffect(() => {
+    // Fetch exams, invigilators, rooms, and notifications
+    // setExams(fetchedExams)
+    // setInvigilators(fetchedInvigilators)
+    // setRooms(fetchedRooms)
+    // setNotifications(fetchedNotifications)
+  }, [])
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target
+    setFilters((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (Object.values(formData).every((field) => field !== "")) {
-      const newExam = { ...formData, id: Date.now() }
-      setExams((prevExams) => [...prevExams, newExam])
-      setFormData({
-        subject: "",
-        department_id: "",
-        exam_date: "",
-        start_time: "",
-        end_time: "",
-        difficulty: 1,
-        coefficient: 1,
-        is_duplicate: false,
-      })
-      setNotification("Examen ajouté avec succès!")
-      setTimeout(() => setNotification(null), 3000)
-    } else {
-      setNotification("Veuillez remplir tous les champs")
-      setTimeout(() => setNotification(null), 3000)
+  const handleExamChange = (action, exam) => {
+    switch (action) {
+      case "add":
+        setExams([...exams, exam])
+        addNotification(`Nouvel examen ajouté : ${exam.subject}`)
+        break
+      case "update":
+        setExams(exams.map((e) => (e.id === exam.id ? exam : e)))
+        addNotification(`Examen modifié : ${exam.subject}`)
+        break
+      case "delete":
+        setExams(exams.filter((e) => e.id !== exam.id))
+        addNotification(`Examen supprimé : ID ${exam.id}`)
+        break
+      default:
+        console.error("Action non reconnue")
     }
   }
 
-  if (showRoomManagement) {
-    return <RoomManagement onBack={() => setShowRoomManagement(false)} />
+  const addNotification = (message) => {
+    setNotifications((prev) => [...prev, { id: Date.now(), message }])
+    // Here you would also send notifications to students and supervisors
+    // This is a placeholder for that functionality
+    console.log("Notification sent to students and supervisors:", message)
   }
 
-  if (showRoomList) {
-    return <RoomList onBack={() => setShowRoomList(false)} />
-  }
-
-  if (showExamManagement) {
-    return (
-      <div className="space-y-6">
-        {notification && (
-          <div
-            className="notification fixed top-4 right-4 max-w-md bg-white border-l-4 border-green-500 rounded-lg shadow-lg p-4"
-            role="alert"
-          >
-            <p className="text-green-700">{notification}</p>
-          </div>
-        )}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Gérer les examens</h2>
-            <button
-              onClick={() => {
-                setShowExamManagement(false)
-                setShowExamList(false)
-              }}
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
-            >
-              Retour
-            </button>
-          </div>
-
-          {showExamList ? (
-            <div>
-              <div className="card-hover bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Liste des examens</h3>
-                <div className="table-container">
-                  {exams.length > 0 ? (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Matière
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Département
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Heure de début
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Heure de fin
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Difficulté
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Coefficient
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Est une copie
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {exams.map((exam) => (
-                          <tr key={exam.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.subject}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.department_id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.exam_date}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.start_time}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.end_time}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.difficulty}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{exam.coefficient}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {exam.is_duplicate ? "Oui" : "Non"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p className="text-gray-500 text-center py-4">Aucun examen ajouté pour le moment.</p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setShowExamList(false)}
-                className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-              >
-                Retour
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="card-hover bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Ajouter un examen</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="subject">
-                      Matière
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="subject"
-                      type="text"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      placeholder="Entrez la matière"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="department_id">
-                      ID du département
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="department_id"
-                      type="number"
-                      name="department_id"
-                      value={formData.department_id}
-                      onChange={handleInputChange}
-                      placeholder="Entrez l'ID du département"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exam_date">
-                      Date de l'examen
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="exam_date"
-                      type="date"
-                      name="exam_date"
-                      value={formData.exam_date}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="start_time">
-                      Heure de début
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="start_time"
-                      type="time"
-                      name="start_time"
-                      value={formData.start_time}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="end_time">
-                      Heure de fin
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="end_time"
-                      type="time"
-                      name="end_time"
-                      value={formData.end_time}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="difficulty">
-                      Difficulté
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="difficulty"
-                      type="number"
-                      name="difficulty"
-                      value={formData.difficulty}
-                      onChange={handleInputChange}
-                      min="1"
-                      max="5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="coefficient">
-                      Coefficient
-                    </label>
-                    <input
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      id="coefficient"
-                      type="number"
-                      name="coefficient"
-                      value={formData.coefficient}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="is_duplicate"
-                        checked={formData.is_duplicate}
-                        onChange={handleInputChange}
-                        className="form-checkbox"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Est une copie</span>
-                    </label>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700"
-                  >
-                    Ajouter l'examen
-                  </button>
-                </form>
-              </div>
-              
-            </div>
-          )}
+  const renderMainView = () => (
+    <div className="container-fluid">
+      <h2 className="mb-4">Planning Global</h2>
+      <div className="row mb-4">
+        <div className="col">
+          <input
+            type="date"
+            className="form-control"
+            name="date"
+            value={filters.date}
+            onChange={handleFilterChange}
+            placeholder="Filtrer par date"
+          />
+        </div>
+        <div className="col">
+          <input
+            type="text"
+            className="form-control"
+            name="subject"
+            value={filters.subject}
+            onChange={handleFilterChange}
+            placeholder="Filtrer par matière"
+          />
+        </div>
+        <div className="col">
+          <input
+            type="text"
+            className="form-control"
+            name="teacher"
+            value={filters.teacher}
+            onChange={handleFilterChange}
+            placeholder="Filtrer par enseignant"
+          />
+        </div>
+        <div className="col">
+          <input
+            type="text"
+            className="form-control"
+            name="room"
+            value={filters.room}
+            onChange={handleFilterChange}
+            placeholder="Filtrer par salle"
+          />
+        </div>
+        <div className="col">
+          <input
+            type="text"
+            className="form-control"
+            name="studyLevel"
+            value={filters.studyLevel}
+            onChange={handleFilterChange}
+            placeholder="Filtrer par niveau d'étude"
+          />
         </div>
       </div>
-    )
-  }
+      <div className="table-responsive">
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Matière</th>
+              <th>Enseignant</th>
+              <th>Salle</th>
+              <th>Surveillants</th>
+            </tr>
+          </thead>
+          <tbody>
+            {exams.map((exam) => (
+              <tr key={exam.id}>
+                <td>{exam.date}</td>
+                <td>{exam.subject}</td>
+                <td>{exam.supervisor}</td>
+                <td>{exam.room}</td>
+                <td>{exam.supervisor}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 
-  if (showSupervisorManagement) {
-    return <SupervisorManagement onBack={() => setShowSupervisorManagement(false)} />
-  }
+  const renderExamManagement = () => <ExamManagement onExamChange={handleExamChange} />
+
+  const renderInvigilatorManagement = () => <SupervisorManagement onBack={() => setActiveView("main")} />
+
+  const renderRoomManagement = () => (
+    <div className="container">
+      <h2 className="mb-4">Gestion des Salles</h2>
+      <RoomManagement />
+    </div>
+  )
+
+  const renderValidations = () => (
+    <div className="container">
+      <h2 className="mb-4">Validations</h2>
+      <ul className="list-group">
+        {notifications.map((notification) => (
+          <li key={notification.id} className="list-group-item">
+            {notification.message}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+
+  const renderScheduleSending = () => (
+    <div className="container">
+      <h2 className="mb-4">Envoi de Planning et Notifications</h2>
+      <button className="btn btn-primary me-2">Envoyer le Planning par Email</button>
+      <button className="btn btn-secondary">Envoyer une Notification de Changement</button>
+    </div>
+  )
+
+  const renderSupervisorsManagement = () => <SupervisorManagement onBack={() => setActiveView("main")} />
 
   return (
-    <div className="space-y-6">
-      {notification && (
-        <div
-          className="notification fixed top-4 right-4 max-w-md bg-white border-l-4 border-green-500 rounded-lg shadow-lg p-4"
-          role="alert"
-        >
-          <p className="text-green-700">{notification}</p>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Tableau de bord Administrateur</h2>
-          <div className="flex items-center space-x-4">
-            <div className="logo-container w-12 h-12">
-              <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ZQPYIu2c4AQqymWsBvjL2lrdVIhe4s.png"
-                alt="ISIM Logo"
-                className="w-full h-full"
-              />
-            </div>
+    <div className="container-fluid">
+      <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div className="container-fluid">
+          <a className="navbar-brand" href="#">
+            Tableau de Bord Administrateur
+          </a>
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "main" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("main")}
+                >
+                  Planning Global
+                </a>
+              </li>
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "exams" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("exams")}
+                >
+                  Gestion des Examens
+                </a>
+              </li>
+              
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "supervisors" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("supervisors")}
+                >
+                  Gestion des Surveillants
+                </a>
+              </li>
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "rooms" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("rooms")}
+                >
+                  Gestion des Salles
+                </a>
+              </li>
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "validations" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("validations")}
+                >
+                  Validations
+                </a>
+              </li>
+              <li className="nav-item">
+                <a
+                  className={`nav-link ${activeView === "schedule" ? "active" : ""}`}
+                  href="#"
+                  onClick={() => setActiveView("schedule")}
+                >
+                  Envoi de Planning
+                </a>
+              </li>
+            </ul>
           </div>
+          <button className="btn btn-outline-danger" onClick={onLogout}>
+            Déconnexion
+          </button>
         </div>
+      </nav>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button
-            onClick={() => setShowExamManagement(true)}
-            className="card-hover bg-white p-4 rounded-lg shadow text-blue-600 font-medium hover:bg-blue-50 transition-colors"
-          >
-            Gérer les examens
-          </button>
-          
-          <button
-            onClick={() => setShowRoomManagement(true)}
-            className="card-hover bg-white p-4 rounded-lg shadow text-blue-600 font-medium hover:bg-blue-50 transition-colors"
-          >
-            Gérer les salles
-          </button>
-          <button
-            onClick={() => setShowSupervisorManagement(true)}
-            className="card-hover bg-white p-4 rounded-lg shadow text-blue-600 font-medium hover:bg-blue-50 transition-colors"
-          >
-            Affecter les surveillants
-          </button>
-          <button className="card-hover bg-white p-4 rounded-lg shadow text-blue-600 font-medium hover:bg-blue-50 transition-colors">
-            Dupliquer une session
-          </button>
-          <button className="card-hover bg-white p-4 rounded-lg shadow text-blue-600 font-medium hover:bg-blue-50 transition-colors">
-            Envoyer le planning
-          </button>
-        </div>
+      {activeView === "main" && renderMainView()}
+      {activeView === "exams" && renderExamManagement()}
+      {activeView === "invigilators" && renderInvigilatorManagement()}
+      {activeView === "rooms" && renderRoomManagement()}
+      {activeView === "validations" && renderValidations()}
+      {activeView === "schedule" && renderScheduleSending()}
+      {activeView === "supervisors" && renderSupervisorsManagement()}
+
+      <div className="mt-4">
+        <h3>Actions Rapides</h3>
+        <button className="btn btn-outline-primary me-2 mb-2" onClick={() => setActiveView("exams")}>
+          Gérer les Examens
+        </button>
+        <button className="btn btn-outline-secondary me-2 mb-2" onClick={() => setActiveView("invigilators")}>
+          Gérer les Surveillants
+        </button>
+        <button className="btn btn-outline-info me-2 mb-2" onClick={() => setActiveView("rooms")}>
+          Gérer les Salles
+        </button>
+        <button className="btn btn-outline-warning me-2 mb-2">Dupliquer une Session</button>
+        <button className="btn btn-outline-success me-2 mb-2">Dupliquer le Calendrier</button>
       </div>
     </div>
   )

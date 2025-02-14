@@ -5,332 +5,271 @@ import PropTypes from "prop-types"
 
 function RoomManagement({ onBack }) {
   const [rooms, setRooms] = useState([])
-  const [exams, setExams] = useState([])
   const [reservations, setReservations] = useState([])
-  const [departments, setDepartments] = useState([])
-  const [activeView, setActiveView] = useState("main")
+  const [currentReservation, setCurrentReservation] = useState({
+    roomId: "",
+    examId: "",
+    date: "",
+    startTime: "",
+    endTime: "",
+    numberOfStudents: 0,
+  })
   const [notification, setNotification] = useState(null)
 
-  const [newRoom, setNewRoom] = useState({
-    subject: "",
-    department_id: "",
-    exam_date: "",
-    start_time: "",
-    end_time: "",
-    difficulty: 1,
-    coefficient: 1,
-    is_duplicate: false,
-  })
-
-  const [newReservation, setNewReservation] = useState({
-    exam_id: "",
-    room_id: "",
-  })
-
   useEffect(() => {
-    // Fetch data from API or database
-    // This is a placeholder. Replace with actual API calls.
+    // Fetch rooms and reservations data
     fetchRooms()
-    fetchExams()
     fetchReservations()
-    fetchDepartments()
   }, [])
 
   const fetchRooms = async () => {
-    // Placeholder: Replace with actual API call
+    // This is a placeholder. Replace with actual API call
     const mockRooms = [
-      { id: 1, name: "Salle 1", isReserved: true, reservationDate: "2023-06-15" },
-      { id: 2, name: "Salle 2", isReserved: false, reservationDate: null },
-      { id: 3, name: "Salle 3", isReserved: true, reservationDate: "2023-06-16" },
-      { id: 4, name: "Salle 4", isReserved: false, reservationDate: null },
+      { id: 1, name: "Salle A", capacity: 50 },
+      { id: 2, name: "Salle B", capacity: 75 },
+      { id: 3, name: "Salle C", capacity: 100 },
+      { id: 4, name: "Salle D", capacity: 30 },
     ]
     setRooms(mockRooms)
   }
 
-  const fetchExams = async () => {
-    // Placeholder: Replace with actual API call
-    const response = await fetch("/api/exams")
-    const data = await response.json()
-    setExams(data)
-  }
-
   const fetchReservations = async () => {
-    // Placeholder: Replace with actual API call
-    const response = await fetch("/api/reservations")
-    const data = await response.json()
-    setReservations(data)
+    // This is a placeholder. Replace with actual API call
+    const mockReservations = [
+      { id: 1, roomId: 1, examId: 1, date: "2023-06-15", startTime: "09:00", endTime: "11:00", numberOfStudents: 40 },
+      { id: 2, roomId: 2, examId: 2, date: "2023-06-16", startTime: "14:00", endTime: "16:00", numberOfStudents: 60 },
+    ]
+    setReservations(mockReservations)
   }
 
-  const fetchDepartments = async () => {
-    // Placeholder: Replace with actual API call
-    const response = await fetch("/api/departments")
-    const data = await response.json()
-    setDepartments(data)
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setCurrentReservation((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleInputChange = (e, setterFunction) => {
-    const { name, value, type, checked } = e.target
-    setterFunction((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
+  const checkRoomAvailability = (roomId, date, startTime, endTime) => {
+    return !reservations.some(
+      (reservation) =>
+        reservation.roomId === Number.parseInt(roomId) &&
+        reservation.date === date &&
+        ((startTime >= reservation.startTime && startTime < reservation.endTime) ||
+          (endTime > reservation.startTime && endTime <= reservation.endTime) ||
+          (startTime <= reservation.startTime && endTime >= reservation.endTime)),
+    )
   }
 
-  const handleAddRoom = async (e) => {
+  const findAlternativeRoom = (date, startTime, endTime, numberOfStudents) => {
+    return rooms.find(
+      (room) => room.capacity >= numberOfStudents && checkRoomAvailability(room.id, date, startTime, endTime),
+    )
+  }
+
+  const handleSubmit = (e) => {
     e.preventDefault()
-    // Placeholder: Replace with actual API call
-    const response = await fetch("/api/rooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newRoom),
-    })
-    if (response.ok) {
-      setNotification("Salle ajoutée avec succès")
-      fetchRooms()
-      setNewRoom({
-        subject: "",
-        department_id: "",
-        exam_date: "",
-        start_time: "",
-        end_time: "",
-        difficulty: 1,
-        coefficient: 1,
-        is_duplicate: false,
-      })
-    } else {
-      setNotification("Erreur lors de l'ajout de la salle")
+    const { roomId, date, startTime, endTime, numberOfStudents } = currentReservation
+    const selectedRoom = rooms.find((room) => room.id === Number.parseInt(roomId))
+
+    if (!selectedRoom) {
+      setNotification("Veuillez sélectionner une salle valide.")
+      return
     }
+
+    if (selectedRoom.capacity < numberOfStudents) {
+      setNotification(
+        `Alerte : La capacité de la salle (${selectedRoom.capacity}) est insuffisante pour le nombre d'étudiants (${numberOfStudents}).`,
+      )
+      return
+    }
+
+    if (!checkRoomAvailability(roomId, date, startTime, endTime)) {
+      const alternativeRoom = findAlternativeRoom(date, startTime, endTime, numberOfStudents)
+      if (alternativeRoom) {
+        setNotification(
+          `La salle ${selectedRoom.name} n'est pas disponible. Salle alternative suggérée : ${alternativeRoom.name}`,
+        )
+      } else {
+        setNotification(
+          "Aucune salle disponible pour ce créneau. Veuillez choisir un autre horaire ou diviser les étudiants.",
+        )
+      }
+      return
+    }
+
+    // If all checks pass, add the reservation
+    const newReservation = {
+      id: Date.now(),
+      ...currentReservation,
+      roomId: Number.parseInt(roomId),
+    }
+    setReservations([...reservations, newReservation])
+    setNotification("Réservation ajoutée avec succès.")
+    setCurrentReservation({
+      roomId: "",
+      examId: "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      numberOfStudents: 0,
+    })
   }
 
-  const handleAddReservation = async (e) => {
-    e.preventDefault()
-    // Placeholder: Replace with actual API call
-    const response = await fetch("/api/reservations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newReservation),
-    })
-    if (response.ok) {
-      setNotification("Réservation ajoutée avec succès")
-      fetchReservations()
-      setNewReservation({
-        exam_id: "",
-        room_id: "",
-      })
-    } else {
-      setNotification("Erreur lors de l'ajout de la réservation")
-    }
-  }
-
-  const renderMainView = () => (
-    <div className="space-y-4">
-      <button
-        onClick={() => setActiveView("rooms")}
-        className="w-full p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-      >
-        Afficher les salles
-      </button>
-      <button
-        onClick={() => setActiveView("addRoom")}
-        className="w-full p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-      >
-        Ajouter une salle
-      </button>
-      <button
-        onClick={() => setActiveView("reservations")}
-        className="w-full p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-      >
-        Réserver une salle
-      </button>
-    </div>
-  )
-
-  const renderRoomsView = () => (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Liste des salles</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+  return (
+    <div className="container">
+      <h2 className="mb-4">Gestion des Salles</h2>
+      {notification && (
+        <div className="alert alert-info" role="alert">
+          {notification}
+        </div>
+      )}
+      <div className="row">
+        <div className="col-md-6">
+          <h3>Liste des Salles</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Capacité</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rooms.map((room) => (
+                <tr key={room.id}>
+                  <td>{room.name}</td>
+                  <td>{room.capacity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="col-md-6">
+          <h3>Réserver une Salle</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="roomId" className="form-label">
+                Salle
+              </label>
+              <select
+                id="roomId"
+                name="roomId"
+                className="form-select"
+                value={currentReservation.roomId}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Sélectionnez une salle</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name} (Capacité: {room.capacity})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="examId" className="form-label">
+                ID de l'examen
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="examId"
+                name="examId"
+                value={currentReservation.examId}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="date" className="form-label">
+                Date
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="date"
+                name="date"
+                value={currentReservation.date}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="startTime" className="form-label">
+                Heure de début
+              </label>
+              <input
+                type="time"
+                className="form-control"
+                id="startTime"
+                name="startTime"
+                value={currentReservation.startTime}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="endTime" className="form-label">
+                Heure de fin
+              </label>
+              <input
+                type="time"
+                className="form-control"
+                id="endTime"
+                name="endTime"
+                value={currentReservation.endTime}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="numberOfStudents" className="form-label">
+                Nombre d'étudiants
+              </label>
+              <input
+                type="number"
+                className="form-control"
+                id="numberOfStudents"
+                name="numberOfStudents"
+                value={currentReservation.numberOfStudents}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary">
+              Réserver
+            </button>
+          </form>
+        </div>
+      </div>
+      <div className="mt-4">
+        <h3>Réservations actuelles</h3>
+        <table className="table">
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nom de la Salle
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date de Réservation
-              </th>
+              <th>Salle</th>
+              <th>Examen ID</th>
+              <th>Date</th>
+              <th>Heure de début</th>
+              <th>Heure de fin</th>
+              <th>Nombre d'étudiants</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {rooms.map((room) => (
-              <tr key={room.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{room.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {room.isReserved ? (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                      Réservée
-                    </span>
-                  ) : (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Libre
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.reservationDate || "N/A"}</td>
+          <tbody>
+            {reservations.map((reservation) => (
+              <tr key={reservation.id}>
+                <td>{rooms.find((room) => room.id === reservation.roomId)?.name}</td>
+                <td>{reservation.examId}</td>
+                <td>{reservation.date}</td>
+                <td>{reservation.startTime}</td>
+                <td>{reservation.endTime}</td>
+                <td>{reservation.numberOfStudents}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
-  )
-
-  const renderAddRoomView = () => (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Ajouter une salle</h2>
-      <form onSubmit={handleAddRoom} className="space-y-4">
-        <input
-          type="text"
-          name="subject"
-          value={newRoom.subject}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          placeholder="Matière"
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="number"
-          name="department_id"
-          value={newRoom.department_id}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          placeholder="ID du département"
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="date"
-          name="exam_date"
-          value={newRoom.exam_date}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="time"
-          name="start_time"
-          value={newRoom.start_time}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="time"
-          name="end_time"
-          value={newRoom.end_time}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="number"
-          name="difficulty"
-          value={newRoom.difficulty}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          placeholder="Difficulté"
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="number"
-          name="coefficient"
-          value={newRoom.coefficient}
-          onChange={(e) => handleInputChange(e, setNewRoom)}
-          placeholder="Coefficient"
-          className="w-full p-2 border rounded"
-        />
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="is_duplicate"
-            checked={newRoom.is_duplicate}
-            onChange={(e) => handleInputChange(e, setNewRoom)}
-            className="form-checkbox"
-          />
-          <span>Est une copie</span>
-        </label>
-        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
-          Ajouter Salle
-        </button>
-      </form>
-    </div>
-  )
-
-  const renderReservationsView = () => (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Réserver une salle</h2>
-      <form onSubmit={handleAddReservation} className="space-y-4">
-        <select
-          name="exam_id"
-          value={newReservation.exam_id}
-          onChange={(e) => handleInputChange(e, setNewReservation)}
-          className="w-full p-2 border rounded"
-        >
-          <option value="">Sélectionnez un examen</option>
-          {exams.map((exam) => (
-            <option key={exam.exam_id} value={exam.exam_id}>
-              {exam.subject} - {exam.exam_date}
-            </option>
-          ))}
-        </select>
-        <select
-          name="room_id"
-          value={newReservation.room_id}
-          onChange={(e) => handleInputChange(e, setNewReservation)}
-          className="w-full p-2 border rounded"
-        >
-          <option value="">Sélectionnez une salle</option>
-          {rooms.map((room) => (
-            <option key={room.id} value={room.id}>
-              {room.name}
-            </option>
-          ))}
-        </select>
-        <button type="submit" className="w-full p-2 bg-purple-500 text-white rounded">
-          Réserver la Salle
-        </button>
-      </form>
-      <div className="mt-4">
-        <h3 className="text-xl font-semibold">Liste des Réservations</h3>
-        <ul className="mt-2 space-y-2">
-          {reservations.map((reservation) => (
-            <li key={reservation.exam_room_id} className="p-2 bg-gray-100 rounded">
-              Examen ID: {reservation.exam_id} - Salle ID: {reservation.room_id}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-
-  return (
-    <div className="container mx-auto p-4">
-      {notification && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{notification}</span>
-        </div>
-      )}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Gestion des Salles et Examens</h1>
-        <button onClick={onBack} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
-          Retour
-        </button>
-      </div>
-      {activeView === "main" && renderMainView()}
-      {activeView === "rooms" && renderRoomsView()}
-      {activeView === "addRoom" && renderAddRoomView()}
-      {activeView === "reservations" && renderReservationsView()}
-      {activeView !== "main" && (
-        <button
-          onClick={() => setActiveView("main")}
-          className="mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-        >
-          Retour au menu principal
-        </button>
-      )}
+      <button onClick={onBack} className="btn btn-secondary mt-4">
+        Retour
+      </button>
     </div>
   )
 }
