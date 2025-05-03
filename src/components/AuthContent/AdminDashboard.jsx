@@ -6,7 +6,7 @@ import RoomManagement from "./RoomManagement"
 import ExamManagement from "./ExamManagement"
 import SupervisorManagement from "./SupervisorManagement"
 
-function AdminDashboard({ onLogout }) {
+function AdminDashboard() {
   const [activeView, setActiveView] = useState("main")
   const [exams, setExams] = useState([])
   const [invigilators, setInvigilators] = useState([])
@@ -254,9 +254,6 @@ function AdminDashboard({ onLogout }) {
               </li>
             </ul>
           </div>
-          <button className="btn btn-outline-danger" onClick={onLogout}>
-            Déconnexion
-          </button>
         </div>
       </nav>
 
@@ -284,10 +281,6 @@ function AdminDashboard({ onLogout }) {
       </div>
     </div>
   )
-}
-
-AdminDashboard.propTypes = {
-  onLogout: PropTypes.func.isRequired,
 }
 
 export default AdminDashboard

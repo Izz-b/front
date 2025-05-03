@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import PropTypes from "prop-types"
 
-function DepartmentHeadDashboard({ onLogout }) {
+function DepartmentHeadDashboard() {
   // États pour la validation, les plannings, les détails des examens et les notifications de modifications
   const [validations, setValidations] = useState([])
   const [notification, setNotification] = useState(null)
@@ -88,12 +88,6 @@ function DepartmentHeadDashboard({ onLogout }) {
         <h2 className="text-xl font-semibold text-blue-800">
           Tableau de bord Chef de Département
         </h2>
-        <button
-          onClick={onLogout}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        >
-          Déconnexion
-        </button>
       </div>
 
       {notification && (
@@ -232,8 +226,7 @@ function DepartmentHeadDashboard({ onLogout }) {
             </div>
             <button
               type="submit"
-              className="btn btn-outline-primary me-2 mb-2"
-            >
+              className="btn btn-outline-primary me-2 mb-2">
               Ajouter la validation
             </button>
           </form>
@@ -308,10 +301,6 @@ function DepartmentHeadDashboard({ onLogout }) {
       </section>
     </div>
   )
-}
-
-DepartmentHeadDashboard.propTypes = {
-  onLogout: PropTypes.func.isRequired,
 }
 
 export default DepartmentHeadDashboard
