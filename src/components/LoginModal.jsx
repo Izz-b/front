@@ -4,35 +4,48 @@ import PropTypes from 'prop-types';
 import { request, setAuthToken } from "../services/axios_helper";
 import { useState,useCallback } from 'react';
 
-export default function LoginModal({ show, handleClose, onLogin}) {
+export default function LoginModal({ show, handleClose, onLogin, setRole}) {
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const ALLOWED_ROLES = ["ADMIN", "CHEF", "DIRECTEUR"];
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleRememberMeChange = (e) => {
     setRememberMe(e.target.checked);
   };
 
   const onLoginServer = useCallback(async (e) => {
       e.preventDefault();
+      setErrorMessage(""); // reset message
+
       if (email.trim() === '' || password.trim() === '') {
-        console.error("Email et mot de passe requis.");
-        return;
-      }
+        setErrorMessage("Veuillez remplir tous les champs.");
+        return; }
       try {
         const response = await request("POST", "/api/users/login", { email, password,rememberMe});
-        if (response.data?.token) {
-          setAuthToken(response.data.token);
-          /*before we move to the next page, we need to know the role of the user
-           so that we can add it to the parametres of the next component*/
-           onLogin();
-        } else {
-          console.error("Authentification échouée : token non reçu.");
+        const { token, role: roleUser } = response.data || {};
+        if (!token) {
+          setErrorMessage("Authentification échouée : token non reçu.");
+          return;
         }
+        // Authentification réussie
+        setRole(roleUser);
+        if (!ALLOWED_ROLES.includes(roleUser)) {
+          setErrorMessage("⚠️ Accès refusé : cette version du site est réservée aux administrateurs.");
+          return;
+        }
+        else{
+          // Si tout est bon, appel du callback
+          onLogin(); setAuthToken(token);
+        }
+          
       } catch (error) {
         console.error("Erreur lors de la connexion :", error);
+        setErrorMessage("Erreur lors de la connexion. Veuillez réessayer.");
       }
-    }, [email, password, onLogin]);
+    }, [email, password, rememberMe, onLogin]);
     
     return (
     <Modal show={show} onHide={handleClose} centered backdrop="static">
@@ -71,7 +84,12 @@ export default function LoginModal({ show, handleClose, onLogin}) {
             <Form.Check type="checkbox" label="Se souvenir de moi" 
              checked={rememberMe} onChange={handleRememberMeChange}/>
           </Form.Group>
-
+          {/* Affichage du message d'erreur stylé */}
+          {errorMessage && (
+            <div className="alert alert-danger mt-2" role="alert">
+              {errorMessage}
+            </div>
+          )}
           <div className="d-flex justify-content-end">
           <Button variant="primary" type="submit">
             Se connecter</Button>
@@ -86,4 +104,5 @@ LoginModal.propTypes = {
     show: PropTypes.bool.isRequired,
     handleClose: PropTypes.func.isRequired,
     onLogin: PropTypes.func.isRequired,
+    setRole: PropTypes.func.isRequired,
 };
