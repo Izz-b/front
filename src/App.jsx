@@ -9,7 +9,7 @@ import {setAuthToken } from "/src/services/axios_helper";
 function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role,setRole]=useState();
+  const [role,setRole]=useState("");
   
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -30,7 +30,8 @@ function App() {
         onLogoutClick={handleLogout} />
       <LoginModal show={showLoginModal}
         handleClose={() => setShowLoginModal(false)}
-        onLogin={handleLogin} setRole={setRole} />
+        onLogin={handleLogin} setRole={setRole} 
+        handleLogout={handleLogout}/>
 
       <Container className="mt-4">
         <AppComponent isLoggedIn={isLoggedIn} role={role}/>

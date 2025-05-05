@@ -3,8 +3,9 @@ import { Eye, EyeSlash } from 'react-bootstrap-icons';
 import PropTypes from 'prop-types';
 import { request, setAuthToken } from "../services/axios_helper";
 import { useState,useCallback } from 'react';
+import {monitorTokenExpiration} from '../services/JWToken';
 
-export default function LoginModal({ show, handleClose, onLogin, setRole}) {
+export default function LoginModal({ show, handleClose, onLogin, setRole,handleLogout}) {
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,21 +27,21 @@ export default function LoginModal({ show, handleClose, onLogin, setRole}) {
       try {
         const response = await request("POST", "/api/users/login", { email, password,rememberMe});
         const { token, role: roleUser } = response.data || {};
-        if (!token) {
+        if (token) {
+          // Authentification réussie
+          setRole(roleUser);
+          if (!ALLOWED_ROLES.includes(roleUser)) {
+            setErrorMessage("⚠️ Accès refusé : cette version du site est réservée aux administrateurs.");
+            return;
+          }
+          else {
+            // Si tout est bon, appel du callback
+            monitorTokenExpiration(token, handleLogout);
+            onLogin(); setAuthToken(token);
+          }
+        } else{
           setErrorMessage("Authentification échouée : token non reçu.");
-          return;
-        }
-        // Authentification réussie
-        setRole(roleUser);
-        if (!ALLOWED_ROLES.includes(roleUser)) {
-          setErrorMessage("⚠️ Accès refusé : cette version du site est réservée aux administrateurs.");
-          return;
-        }
-        else{
-          // Si tout est bon, appel du callback
-          onLogin(); setAuthToken(token);
-        }
-          
+          return;}
       } catch (error) {
         console.error("Erreur lors de la connexion :", error);
         setErrorMessage("Erreur lors de la connexion. Veuillez réessayer.");
@@ -105,4 +106,5 @@ LoginModal.propTypes = {
     handleClose: PropTypes.func.isRequired,
     onLogin: PropTypes.func.isRequired,
     setRole: PropTypes.func.isRequired,
+    handleLogout: PropTypes.func.isRequired,
 };
