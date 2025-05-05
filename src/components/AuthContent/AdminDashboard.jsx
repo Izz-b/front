@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import PropTypes from "prop-types"
 import RoomManagement from "./RoomManagement"
 import ExamManagement from "./ExamManagement"
 import SupervisorManagement from "./SupervisorManagement"
@@ -178,7 +177,7 @@ function AdminDashboard() {
   const renderSupervisorsManagement = () => <SupervisorManagement onBack={() => setActiveView("main")} />
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid pb-4">
       <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
         <div className="container-fluid">
           <a className="navbar-brand" href="#">
@@ -215,7 +214,7 @@ function AdminDashboard() {
                   Gestion des Examens
                 </a>
               </li>
-              
+
               <li className="nav-item">
                 <a
                   className={`nav-link ${activeView === "supervisors" ? "active" : ""}`}
@@ -284,4 +283,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
-

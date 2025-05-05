@@ -8,10 +8,7 @@ function RoomManagement({ onBack }) {
   const [reservations, setReservations] = useState([])
   const [currentReservation, setCurrentReservation] = useState({
     roomId: "",
-    examId: "",
-    date: "",
-    startTime: "",
-    endTime: "",
+    
     numberOfStudents: 0,
   })
   const [notification, setNotification] = useState(null)
@@ -105,10 +102,7 @@ function RoomManagement({ onBack }) {
     setNotification("Réservation ajoutée avec succès.")
     setCurrentReservation({
       roomId: "",
-      examId: "",
-      date: "",
-      startTime: "",
-      endTime: "",
+      
       numberOfStudents: 0,
     })
   }
@@ -142,7 +136,7 @@ function RoomManagement({ onBack }) {
           </table>
         </div>
         <div className="col-md-6">
-          <h3>Réserver une Salle</h3>
+          <h3>Ajouter une Salle</h3>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="roomId" className="form-label">
@@ -164,62 +158,9 @@ function RoomManagement({ onBack }) {
                 ))}
               </select>
             </div>
-            <div className="mb-3">
-              <label htmlFor="examId" className="form-label">
-                ID de l'examen
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="examId"
-                name="examId"
-                value={currentReservation.examId}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="date" className="form-label">
-                Date
-              </label>
-              <input
-                type="date"
-                className="form-control"
-                id="date"
-                name="date"
-                value={currentReservation.date}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="startTime" className="form-label">
-                Heure de début
-              </label>
-              <input
-                type="time"
-                className="form-control"
-                id="startTime"
-                name="startTime"
-                value={currentReservation.startTime}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="endTime" className="form-label">
-                Heure de fin
-              </label>
-              <input
-                type="time"
-                className="form-control"
-                id="endTime"
-                name="endTime"
-                value={currentReservation.endTime}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            
+            
+            
             <div className="mb-3">
               <label htmlFor="numberOfStudents" className="form-label">
                 Nombre d'étudiants
@@ -235,7 +176,7 @@ function RoomManagement({ onBack }) {
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Réserver
+              Ajouter
             </button>
           </form>
         </div>
