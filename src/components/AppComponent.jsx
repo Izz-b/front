@@ -9,9 +9,9 @@ export default function AppComponent({isLoggedIn ,role}) {
   return (
     <div>
       {isLoggedIn==false && <WelcomeComponent />}
-      {role=='ADMIN' && <AdminDashboard/>}
-      {role=='CHEF' && <DepartmentHeadDashboard/>}
-      {role=='DIRECTEUR' && <StudiesDirectorDashboard/>}
+      {isLoggedIn==true && role==='ADMIN' && <AdminDashboard/>}
+      {isLoggedIn==true && role==='CHEF' && <DepartmentHeadDashboard/>}
+      {isLoggedIn==true && role==='DIRECTEUR' && <StudiesDirectorDashboard/>}
     </div>
   );
 }
