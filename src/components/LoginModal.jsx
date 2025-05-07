@@ -9,13 +9,8 @@ export default function LoginModal({ show, handleClose, onLogin, setRole,handleL
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const ALLOWED_ROLES = ["ADMIN", "CHEF", "DIRECTEUR"];
   const [errorMessage, setErrorMessage] = useState("");
-
-  const handleRememberMeChange = (e) => {
-    setRememberMe(e.target.checked);
-  };
 
   const onLoginServer = useCallback(async (e) => {
       e.preventDefault();
@@ -25,7 +20,7 @@ export default function LoginModal({ show, handleClose, onLogin, setRole,handleL
         setErrorMessage("Veuillez remplir tous les champs.");
         return; }
       try {
-        const response = await request("POST", "/api/users/login", { email, password,rememberMe});
+        const response = await request("POST", "/api/users/login", { email, password});
         const { token, role: roleUser } = response.data || {};
         if (token) {
           // Authentification réussie
@@ -46,7 +41,7 @@ export default function LoginModal({ show, handleClose, onLogin, setRole,handleL
         console.error("Erreur lors de la connexion :", error);
         setErrorMessage("Erreur lors de la connexion. Veuillez réessayer.");
       }
-    }, [email, password, rememberMe, onLogin]);
+    }, [email, password, onLogin]);
     
     return (
     <Modal show={show} onHide={handleClose} centered backdrop="static">
@@ -79,11 +74,6 @@ export default function LoginModal({ show, handleClose, onLogin, setRole,handleL
               {showPassword ? <EyeSlash /> : <Eye />}
             </Button>
           </InputGroup>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formRemember">
-            <Form.Check type="checkbox" label="Se souvenir de moi" 
-             checked={rememberMe} onChange={handleRememberMeChange}/>
           </Form.Group>
           {/* Affichage du message d'erreur stylé */}
           {errorMessage && (
