@@ -31,7 +31,7 @@ function ExamManagement({ onExamChange }) {
         }
     };
     fetchSubjects();
-    }, []);
+    }, [subjectOptions]);
 
   useEffect(() => {
     const fetchExams = async () => {
@@ -43,7 +43,7 @@ function ExamManagement({ onExamChange }) {
         }
     };
     fetchExams();
-    }, []);
+    }, [exams]);
     useEffect(() => {
       const fetchRooms = async () => {
           try {
@@ -54,7 +54,7 @@ function ExamManagement({ onExamChange }) {
           }
       };
       fetchRooms();
-      }, []);
+      }, [roomOptions]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -130,14 +130,23 @@ function ExamManagement({ onExamChange }) {
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="mb-3">
           <label htmlFor="subject" className="form-label">Matière</label>
-          <Select
+          <input
+            type="text"
+            className="form-control"
+            id="subject"
+            name="subject"
+            value={currentExam.subject}
+            onChange={handleInputChange}
+            required
+          />
+          {/* <Select
             id="subject"
             name="subject"
             value={subjectOptions.find(option => option.value === currentExam.subject)}
             onChange={(selectedOption) => handleSelectChange("subject", selectedOption)}
             options={subjectOptions}
             required
-          />
+          /> */}
         </div>
         <div className="mb-3">
           <label htmlFor="date" className="form-label">Date</label>
@@ -151,45 +160,30 @@ function ExamManagement({ onExamChange }) {
             required
           />
         </div>
+
         <div className="mb-3">
-          <label htmlFor="duration" className="form-label">Durée</label>
+          <label htmlFor="startDateTime" className="form-label">Heure Début</label>
           <input
-            type="text"
+            type="time"
             className="form-control"
-            id="duration"
-            name="duration"
-            value={currentExam.duration}
+            id="startDateTime"
+            name="startDateTime"
+            value={currentExam.startDateTime}
             onChange={handleInputChange}
             required
           />
         </div>
         <div className="mb-3">
-  <label htmlFor="startDateTime" className="form-label">Heure Début</label>
-  <input
-    type="time"
-    className="form-control"
-    id="startDateTime"
-    name="startDateTime"
-    value={currentExam.startDateTime}
-    onChange={handleInputChange}
-    required
-  />
-</div>
-
-<div className="mb-3">
-  <label htmlFor="endDateTime" className="form-label">Heure Fin</label>
-  <input
-    type="time"
-    className="form-control"
-    id="endDateTime"
-    name="endDateTime"
-    value={currentExam.endDateTime}
-    onChange={handleInputChange}
-    required
-  />
-</div>
-
-        
+          <label htmlFor="endDateTime" className="form-label">Heure Fin</label>
+          <input
+            type="time"
+            className="form-control"
+            id="endDateTime"
+            name="endDateTime"
+            value={currentExam.endDateTime}
+            onChange={handleInputChange}
+            required />
+        </div>
         <div className="mb-3">
           <label htmlFor="room" className="form-label">Salle</label>
           <Select
@@ -198,7 +192,7 @@ function ExamManagement({ onExamChange }) {
             value={roomOptions.find(option => option.value === currentExam.room)}
             onChange={(selectedOption) => handleSelectChange("room", selectedOption)}
             options={roomOptions}
-            required
+            //required
           />
         </div>
         <div className="mb-3">
@@ -209,7 +203,7 @@ function ExamManagement({ onExamChange }) {
             value={supervisorOptions.find(option => option.value === currentExam.supervisor)}
             onChange={(selectedOption) => handleSelectChange("supervisor", selectedOption)}
             options={supervisorOptions}
-            required
+            //required
           />
         </div>
         <button type="submit" className="btn btn-primary">

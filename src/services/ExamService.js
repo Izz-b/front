@@ -1,6 +1,4 @@
-// ExamService.js
-
-import { request } from "./axios_helper"; // Assure-toi que ce fichier contient bien ta fonction `request`
+import { request } from "./axios_helper";
 
 const API_BASE_URL = "/api/exams";
 
@@ -17,7 +15,7 @@ export const createExam = async (examData) => {
 // Récupérer un examen par son ID
 export const getExamById = async (id) => {
     try {
-        const response = await request("get", `${API_BASE_URL}/${id}`);
+        const response = await request("get", `${API_BASE_URL}/${id}`,null);
         return response.data;
     } catch (error) {
         handleRequestError(error, `Erreur lors de la récupération de l'examen avec l'ID ${id}.`);
@@ -27,7 +25,7 @@ export const getExamById = async (id) => {
 // Récupérer tous les examens
 export const getAllExams = async () => {
     try {
-        const response = await request("get", API_BASE_URL);
+        const response = await request("get", API_BASE_URL, null);
         return response.data;
     } catch (error) {
         handleRequestError(error, "Erreur lors de la récupération de tous les examens.");
@@ -47,7 +45,7 @@ export const updateExam = async (id, updatedData) => {
 // Supprimer un examen
 export const deleteExam = async (id) => {
     try {
-        const response = await request("delete", `${API_BASE_URL}/${id}`);
+        const response = await request("delete", `${API_BASE_URL}/${id}`,null);
         return response.data; // Contient généralement "Exam deleted successfully!"
     } catch (error) {
         handleRequestError(error, `Erreur lors de la suppression de l'examen avec l'ID ${id}.`);
@@ -56,7 +54,9 @@ export const deleteExam = async (id) => {
 
 export const getAllSubjects = async () => {
     try {
-        const response = await request("get", `${API_BASE_URL}/subjects`);
+        console.log("gyyyyyyyg");
+        const response = await request("get", `${API_BASE_URL}/subjects`,null);
+        console.log("heoolllll");
         return response.data;
     } catch (error) {
         handleRequestError(error, "Erreur lors de la récupération de tous les matiéres.");

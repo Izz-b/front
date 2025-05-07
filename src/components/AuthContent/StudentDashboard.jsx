@@ -10,7 +10,7 @@ function StudentDashboard({ onLogout }) {
         </button>
       </div>
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <h3 className="text-lg font-semibold mb-4">Mon planning d'examens</h3>
+        <h3 className="text-lg font-semibold mb-4">Mon planning examens</h3>
         <p className="text-gray-700">Affichage des examens avec les détails (matière, date, heure, salle).</p>
       </div>
     </div>

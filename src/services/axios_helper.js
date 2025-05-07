@@ -19,11 +19,9 @@ export const request = (method, url, data) => {
 
     if (token && token !== "null") {
         headers["Authorization"] = `Bearer ${token}`;
-        console.log("Auth Token:", token);
+        //console.log("Auth Token:", token);
     }
-
-    console.log("Headers envoyés :", headers);
-
+    //console.log("Headers envoyés :", headers);
     return axios({
         method: method,
         headers: headers,

@@ -1,18 +1,14 @@
 "use client"
-
+import StudentManagement from "./StudentManagement"
 import { useState, useEffect } from "react"
 import RoomManagement from "./RoomManagement"
 import ExamManagement from "./ExamManagement"
 import SupervisorManagement from "./SupervisorManagement"
+import { getAuthToken, request } from "../../services/axios_helper"
 
 function AdminDashboard() {
   const [activeView, setActiveView] = useState("main")
   const [exams, setExams] = useState([])
-
-  const [invigilators, setInvigilators] = useState([])
-  
-  const [rooms, setRooms] = useState([])
-  
   const [notifications, setNotifications] = useState([])
   const [filters, setFilters] = useState({
     date: "",
@@ -21,17 +17,41 @@ function AdminDashboard() {
     room: "",
     studyLevel: "",
   })
-  const [showSupervisorManagement, setShowSupervisorManagement] = useState(false)
-
-  // Fetch data (replace with actual API calls)
   useEffect(() => {
-    // Fetch exams, invigilators, rooms, and notifications
-    // setExams(fetchedExams)
-    // setInvigilators(fetchedInvigilators)
-    // setRooms(fetchedRooms)
-    // setNotifications(fetchedNotifications)
-  }, [])
-
+    const fetchData = async () => {
+      let endpoint = null;
+      switch (activeView) {
+        case "exams":
+          endpoint = "/api/exams/page";
+          break;
+        case "invigilators":
+          endpoint = "/api/invigilators/page";
+          break;
+        case "rooms":
+          endpoint = "/api/rooms/page";
+          break;
+        case "validations":
+          endpoint = "/api/validations/page";
+          break;
+        case "schedule":
+          endpoint = "/api/scheduleLogs/page";
+          break;
+        case "main":
+          endpoint = "/api/users/admin";
+          break;
+        default:
+          return;
+      }
+      try {
+        const response = await request("GET", endpoint,null);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Erreur API :", error);
+      }
+    };
+    fetchData();
+  }, [activeView]);  
+  
   const handleFilterChange = (e) => {
     const { name, value } = e.target
     setFilters((prev) => ({ ...prev, [name]: value }))
@@ -146,16 +166,13 @@ function AdminDashboard() {
   )
 
   const renderExamManagement = () => <ExamManagement onExamChange={handleExamChange} />
-
   const renderInvigilatorManagement = () => <SupervisorManagement onBack={() => setActiveView("main")} />
-
   const renderRoomManagement = () => (
     <div className="container">
       <h2 className="mb-4">Gestion des Salles</h2>
-      <RoomManagement />
+      <RoomManagement onBack={() => setActiveView("main")}/>
     </div>
   )
-
   const renderValidations = () => (
     <div className="container">
       <h2 className="mb-4">Validations</h2>
@@ -176,16 +193,13 @@ function AdminDashboard() {
       <button className="btn btn-secondary">Envoyer une Notification de Changement</button>
     </div>
   )
-
-  const renderSupervisorsManagement = () => <SupervisorManagement onBack={() => setActiveView("main")} />
-
+  const renderStudentManagement = () => <StudentManagement onBack={() => setActiveView("main")} />
+  
   return (
     <div className="container-fluid pb-4">
       <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
         <div className="container-fluid">
-          <a className="navbar-brand" href="#">
-            Tableau de Bord Administrateur
-          </a>
+          <span className="navbar-brand">Tableau de Bord Administrateur</span>
           <button
             className="navbar-toggler"
             type="button"
@@ -197,63 +211,30 @@ function AdminDashboard() {
           >
             <span className="navbar-toggler-icon"></span>
           </button>
+
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "main" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("main")}
-                >
-                  Planning Global
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "exams" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("exams")}
-                >
-                  Gestion des Examens
-                </a>
-              </li>
-
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "supervisors" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("supervisors")}
-                >
-                  Gestion des Surveillants
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "rooms" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("rooms")}
-                >
-                  Gestion des Salles
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "validations" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("validations")}
-                >
-                  Validations
-                </a>
-              </li>
-              <li className="nav-item">
-                <a
-                  className={`nav-link ${activeView === "schedule" ? "active" : ""}`}
-                  href="#"
-                  onClick={() => setActiveView("schedule")}
-                >
-                  Envoi de Planning
-                </a>
-              </li>
+              {[
+                { id: "main", label: "Planning Global" },
+                { id: "exams", label: "Gestion des Examens" },
+                { id: "invigilators", label: "Gestion des Surveillants" },
+                { id: "students", label: "Gestion des étudiants" },
+                { id: "rooms", label: "Gestion des Salles" },
+                { id: "validations", label: "Validations" },
+                { id: "schedule", label: "Envoi de Planning" },
+              ].map((item) => (
+                <li key={item.id} className="nav-item">
+                  <a
+                    role="button"
+                    className={`nav-link ${activeView === item.id ? "active" : ""}`}
+                    onClick={(e) => {
+                      e.preventDefault(); // évite tout comportement par défaut
+                      setActiveView(item.id);
+                    }}>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -265,7 +246,7 @@ function AdminDashboard() {
       {activeView === "rooms" && renderRoomManagement()}
       {activeView === "validations" && renderValidations()}
       {activeView === "schedule" && renderScheduleSending()}
-      {activeView === "supervisors" && renderSupervisorsManagement()}
+      {activeView === "students" && renderStudentManagement()}
 
       <div className="mt-4">
         <h3>Actions Rapides</h3>
